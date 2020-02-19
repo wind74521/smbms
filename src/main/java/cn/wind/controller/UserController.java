@@ -2,6 +2,7 @@ package cn.wind.controller;
 
 import cn.wind.config.Constants;
 import cn.wind.config.JsonConfig;
+import cn.wind.config.PageSupport;
 import cn.wind.pojo.Role;
 import cn.wind.pojo.User;
 import cn.wind.service.role.RoleService;
@@ -36,7 +37,65 @@ public class UserController {
     @RequestMapping(value="/list")
     public String findUserList(Model model, String queryUserName, String queryUserRole, String pageIndex){
 
+        Integer _queryUserRole = null;
+        List<User> userList = null;
+        List<Role> roleList = null;
+        //设置页面容量
+        int pageSize = Constants.pageSize;
+        //当前页码
+        int currentPageNo = 1;
+
+        if(queryUserName == null){
+            queryUserName = "";
+        }
+        if(queryUserRole != null && !queryUserRole.equals("")){
+            _queryUserRole = Integer.parseInt(queryUserRole);
+        }
+
+        if(pageIndex != null){
+            try{
+                currentPageNo = Integer.valueOf(pageIndex);
+            }catch(NumberFormatException e){
+                return "redirect:/syserror";
+            }
+        }
+        //总数量（表）
+        int totalCount = 0;
+        try {
+            totalCount = userService.findUserCount(queryUserName,_queryUserRole);
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        //总页数
+        PageSupport pages=new PageSupport();
+        pages.setCurrentPageNo(currentPageNo);
+        pages.setPageSize(pageSize);
+        pages.setTotalCount(totalCount);
+        int totalPageCount = pages.getTotalPageCount();
+        //控制首页和尾页
+        if(currentPageNo < 1){
+            currentPageNo = 1;
+        }else if(currentPageNo > totalPageCount){
+            currentPageNo = totalPageCount;
+        }
+        try {
+            userList = userService.findUserList(queryUserName,_queryUserRole,currentPageNo,pageSize);
+
+            roleList = roleService.findRoleList();
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        model.addAttribute("userList", userList);
+        model.addAttribute("roleList", roleList);
+        model.addAttribute("queryUserName", queryUserName);
+        model.addAttribute("queryUserRole", queryUserRole);
+        model.addAttribute("totalPageCount", totalPageCount);
+        model.addAttribute("totalCount", totalCount);
+        model.addAttribute("currentPageNo", currentPageNo);
         return "user/userlist";
+
     }
 
     @GetMapping(value="/add")

@@ -38,9 +38,9 @@
 
     <insert id="addProvider" parameterType="provider">
 		insert into smbms_provider (proCode,proName,proDesc,proContact,proPhone,proAddress,
-									proFax,createdBy,creationDate,companyLicPicPath,orgCodePicPath)
+									proFax,createdBy,creationDate)
 				values (#{proCode},#{proName},#{proDesc},#{proContact},#{proPhone},#{proAddress},
-				#{proFax},#{createdBy},#{creationDate},#{companyLicPicPath},#{orgCodePicPath})
+				#{proFax},#{createdBy},#{creationDate})
 	</insert>
 
     <update id="updateProvider" parameterType="provider">
