@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.wind.dao.user.UserDao">
+
+    <resultMap type="User" id="userList">
+        <result property="id" column="id"/>
+        <result property="userCode" column="userCode"/>
+        <result property="userName" column="userName"/>
+        <result property="phone" column="phone"/>
+        <result property="birthday" column="birthday"/>
+        <result property="gender" column="gender"/>
+        <result property="userRole" column="userRole"/>
+        <result property="userRoleName" column="roleName"/>
+    </resultMap>
+
+    <select id="findUserList" resultMap="userList">
+        select u.*,r.roleName as userRoleName
+        from smbms.smbms_user u,smbms.smbms_role r
+        where u.userRole = r.id
+        <if test="userName !='' ">
+            and u.userName like CONCAT('%',#{userName},'%')
+        </if>
+        <if test="userRole > 0">
+            and u.userRole = #{userRole}
+        </if>
+        order by creationDate DESC limit #{currentPageNo},#{pageSize}
+    </select>
+
+    <select id="findLogin" resultType="User" parameterType="String">
+        select * from smbms.smbms_user
+        <where>
+            userCode = #{userCode}
+        </where>
+    </select>
+
+    <select id="findUserCount" resultType="int">
+        select count(1) as count
+        from smbms.smbms_user u,smbms.smbms_role r
+        where u.userRole = r.id
+        <if test="userName !='' ">
+            and u.userName like CONCAT('%',#{userName},'%')
+        </if>
+        <if test="userRole > 0">
+            and u.userRole = #{userRole}
+        </if>
+    </select>
+
+    <select id="findUserById" parameterType="int" resultType="User">
+        select u.*,r.roleName as userRoleName
+        from smbms_user u,smbms_role r
+        <where>
+            u.userRole = r.id
+            <if test="id > 0">
+                and u.id= #{id}
+            </if>
+        </where>
+    </select>
+
+    <insert id="addUser" parameterType="User">
+        insert into smbms.smbms_user (userCode,userName,userPassword,
+					userRole,gender,birthday,phone,address,creationDate,createdBy)
+
+            values
+                (#{userCode},#{userName},#{userPassword},#{userRole},#{gender},#{birthday},
+                #{phone},#{address},#{createdBy},#{creationDate})
+    </insert>
+
+    <update id="updateUser" parameterType="User">
+        update smbms.smbms_user set userName=#{userName},
+            <trim prefix="set" suffixOverrides="," suffix="where id = #{id}">
+                <if test="userCode != null">userCode=#{userCode},</if>
+                <if test="userName != null">userName=#{userName},</if>
+                <if test="userPassword != null">userPassword=#{userPassword},</if>
+                <if test="gender == 0 || gender == 1">gender=#{gender},</if>
+                <if test="birthday != null">birthday=#{birthday},</if>
+                <if test="phone != null">phone=#{phone},</if>
+                <if test="address != null">address=#{address},</if>
+                <if test="userRole > 0">userRole=#{userRole},</if>
+                <if test="modifyBy > 0">modifyBy=#{modifyBy},</if>
+                <if test="modifyDate != null">modifyDate=#{modifyDate},</if>
+            </trim>
+    </update>
+
+    <update id="updatePwd">
+        update smbms.smbms_user
+        <trim prefix="set" suffixOverrides="," suffix=" where id = #{id}">
+            userPassword= #{pwd}
+        </trim>
+    </update>
+
+    <delete id="deleteUserById">
+        delete from smbms.smbms_user where id=#{id}
+    </delete>
+
+</mapper>
